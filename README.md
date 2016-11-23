@@ -9,9 +9,10 @@ This repository - as of the inital commit - is not "complete" yet. Bakery expect
   * header.template
   * footer.template
   * rss.template
+  
 The templates go straight into the sources folder.
 
-Markdown files - files with the extensions .md, .markdown and .txt are considered Markdown - will be processed into HTML and wrapped with the header and footer templates.
+Markdown files - files with the extensions .md, .markdown and .txt are considered Markdown - will be processed into HTML and wrapped with the header and footer templates. Other files, as well as folders, are copied as-is.
 
 In the header, the string ##TITLE## will be replaced with the first line of the Markdown file. Both header and footer can also use ##ROOT_PATH## to link to the root of the site.
 

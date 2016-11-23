@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+	<channel>
+		<title>bjoreman.com</title>
+		<link>http://www.bjoreman.com/rss.rss</link>
+		<description>Latest updates on bjoreman.com</description>
+		<language>en-us</language>
+		<managingEditor>editor@bjoreman.com (Fredrik Bj&#246;reman)</managingEditor>
+		<webMaster>webmaster@bjoreman.com (Fredrik Bj&#246;reman)</webMaster>
+		<ttl>30</ttl>
+		<atom:link href="http://www.bjoreman.com/rss.rss" rel="self" type="application/rss+xml" />
+		##CONTENT##
+	</channel>
+</rss>

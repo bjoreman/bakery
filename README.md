@@ -3,6 +3,8 @@ The Python script I use to generate bjoreman.com from Markdown files and some mi
 
 Bakery is the simplest possible script which could possibly do the job. It does no caching between runs, no smart tracking, no splitting into pages or anything else smart, really.
 
+In fact, just reading the code might be quicker and more illuminating than reading this.
+
 Invoked without arguments, Bakery expects to take all content from a folder named "sources" and process them into a folder named "oven".
 
 Bakery expects some template files which it will use as page headers and footers:

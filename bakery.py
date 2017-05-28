@@ -28,27 +28,27 @@ class Bakery:
 		self.markdownProcessor = markdown.Markdown()
 		self.headerText = None
 		self.footerText = None
-	
+
 	def copy_directories_and_files(self):
 		shutil.rmtree(self.destination, ignore_errors = True)
 		shutil.copytree(self.source, self.destination, ignore=shutil.ignore_patterns('*.txt', '*.md', '*.mdown', '*.markdown', '*.template'))
-	
+
 	def process_folders(self):
 		self.process_folder(self.source, None)
-		
+
 	def process_folder(self, folder, parent_folder):
-		if parent_folder is None:
-			print 'Processing folder "' + folder + '"'
-		else:
-			print 'Processing folder "' + parent_folder + '->' + folder + '"'
+		#if parent_folder is None:
+		#	print 'Processing folder "' + folder + '"'
+		#else:
+		#	print 'Processing folder "' + parent_folder + '->' + folder + '"'
 		self.build_pages(folder)
-	
+
 	# Should pass in creation timestamp here I think.
 	def add_to_links(self, path, title, intro, modification_time, tags):
 		path = path.replace('oven/','')
 		#print 'Adding ' + path + ' to links'
 		self.all_links.append({'path' : path, 'title': title, 'intro' : intro, 'modified': modification_time, 'tags': tags})
-	
+
 	def should_skip(self, name):
 		if name.endswith(".txt"):
 			return False
@@ -63,13 +63,13 @@ class Bakery:
 	def build_pages(self, folder):
 		for root, dirs, files in os.walk(folder, topdown=False):
 			for name in files:
-				print os.path.join(root, name)
+				#print os.path.join(root, name)
 				if self.should_skip(name):
 					continue
 				self.generate_page_html(root, name)
-			for name in dirs:
-				print os.path.join(root, name)
-	
+			#for name in dirs:
+			#	print os.path.join(root, name)
+
 	def get_header(self, title="Bakery test", scripts=None, root_path=""):
 		if(self.headerText is None):
 			input_file = codecs.open(self.source + "/header.template", mode="r", encoding="utf-8")
@@ -94,9 +94,10 @@ class Bakery:
 		tags = []
 		for line in input_file:
 			if line.startswith('TAGS: '):
-				tags = line.strip('TAGS: ').rstrip("\r\n").split(',')
+				tags = line.replace('TAGS: ', '', 1).rstrip("\r\n").split(',')
+				tags = map(unicode.strip, tags)
 			elif line.startswith('PUBDATE: '):
-				modification_time = datetime.datetime.strptime(line.strip('PUBDATE: ').rstrip("\r\n"), '%Y-%m-%d')
+				modification_time = datetime.datetime.strptime(line.replace('PUBDATE: ', '', 1).rstrip("\r\n"), '%Y-%m-%d')
 				modification_time = time.mktime(modification_time.timetuple())
 			else:
 				lines.append(line)
@@ -110,7 +111,7 @@ class Bakery:
 		for element in root_path.split('/'):
 			if(element != 'sources'):
 				return_path = return_path + '../'
-		#print return_path	
+		#print return_path
 		html = self.get_header(title, None, return_path) + html + self.get_footer(return_path)
 		# Remove old file extension
 		file = file.replace('.txt', '').replace('.mdown','').replace('.md','').replace('.markdown','')
@@ -160,7 +161,7 @@ class Bakery:
 		text = text.replace("##CONTENT##", content)
 		with codecs.open(os.path.join(self.destination, 'rss.rss'), mode="w", encoding="utf-8") as dest_file:
 			dest_file.write(text)
-	
+
 	def modified(self, item):
 		return item['modified']
 
@@ -174,14 +175,11 @@ class Bakery:
 		result = '<ul class="mainList">'
 		#count = 1;
 		for link in self.all_links:
-			#if count > 20:
-			#	break
-			result += ('<li class="'+ ''.join(map(str, link['tags'])) +'"><a href="'+link['path']+'">'+link['title']+'</a>')
-			#result += ('<p class="teaser">'+link['intro']+'</p>')
+			result += ('<li><a href="'+link['path']+'">'+link['title']+'</a>')
 			if link['tags']:
-				result += '<div class="tags '+ ''.join(map(str, link['tags'])) +'">' + ''.join(map(str, link['tags'])) + '</div>'
+				for tag in link['tags']:
+					result += '<div class="tags '+ tag +'">' + tag + '</div>'
 			result += ('<p class="datestamp">'+self.format_datetime_for_page(datetime.datetime.fromtimestamp(link['modified']))+'</p>')
-			#count = count + 1
 			result += '</li>'
 		result += ('</ul>')
 		return_path = ''
@@ -201,7 +199,7 @@ class Bakery:
 		print 'Creating news and feeds'
 		self.create_news_and_feeds()
 		print 'Bake finished!'
-		
+
 def main(argv):
 	print 'Welcome to the bakery!'
 	# Should not require destination, if none exists put it in a folder inside oven named the same as the source
@@ -217,8 +215,10 @@ def main(argv):
 	if len(argv) is 2:
 		argv.append(None)
 	bakery = Bakery(argv[1], argv[2])
+	start = time.time()
 	bakery.bake()
+	print 'Baked for ', time.time()-start, ' seconds.'
 	print 'Thanks for using Bakery!'
-	
+
 if __name__ == '__main__':
 	main(sys.argv)

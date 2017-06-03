@@ -75,6 +75,14 @@ def parse_value(value):
 def remove_indentation(value):
 	return value.lstrip('-').lstrip(' ')
 
+def modification_time_from_filename(name, original_time):
+	try:
+		return time.mktime(datetime.datetime.strptime(name[0:10], '%Y-%m-%d').timetuple())
+	except Exception:
+		traceback.print_exc()
+		# Intentional ignore
+	return original_time
+
 def generate_page_html(inTuple):
 	(name, path, bakery) = inTuple
 	if should_skip(name):
@@ -86,6 +94,7 @@ def generate_page_html(inTuple):
 	tags = []
 	metadata = {}
 	if (title == '---'):
+		modification_time = modification_time_from_filename(name, modification_time)
 		nextLine = input_file.readline().rstrip("\r\n")
 		inSubsection = None
 		while (nextLine != title):

@@ -1,9 +1,11 @@
 # bakery
 The Python script I use to generate bjoreman.com from Markdown files and some minimal templates.
 
-Bakery is the simplest possible script which could possibly do the job. It does no caching between runs, no smart tracking, no splitting into pages or anything else smart, really.
+Bakery started as the simplest possible script which could possibly do the job. Starting off, it did no caching between runs, no smart tracking, no splitting into pages or anything else smart, really. It has since picked up some capabilities and now uses multiple processes for quicker generation, only writes changed files to disk, and creation of archive pages based on tags. Other than that though, still pretty un-smart.
 
 In fact, just reading the code might be quicker and more illuminating than reading this.
+
+*Note* that there are two scripts: bakery.py and bakeryMulti.py. bakery.py is thoroughly deprecated and kept around for reasons of … nostalgia I guess? It works fine, but does a lot less and only runs in a single process.
 
 Invoked without arguments, Bakery expects to take all content from a folder named "sources" and process them into a folder named "oven".
 

@@ -198,7 +198,7 @@ class Bakery:
 			strings = json.load(open('bakery_config.json'))
 			for key in strings:
 				self.config[key] = strings[key]
-		locale.setlocale(locale.LC_ALL, self.config['locale'])
+		locale.setlocale(locale.LC_ALL, str(self.config['locale']))
 		json.dump(self.config, open('bakery_config.json', 'w'), sort_keys=True, indent=4)
 
 	def get_string(self, key):

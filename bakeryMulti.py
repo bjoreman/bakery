@@ -18,6 +18,8 @@ import re
 import multiprocessing
 import traceback
 import json
+import locale
+from email.Utils import formatdate
 
 # TODO Remove the need for this
 reload(sys)
@@ -42,7 +44,7 @@ def create_link_object(path, title, intro, modification_time, tags, destination)
 	path = path.replace(destination + '/','')
 	return {'path' : path, 'title': title, 'intro' : intro, 'modified': modification_time, 'tags': tags}
 
-def get_header(bakery, title="Bakery test", scripts=None, root_path=""):
+def get_header(bakery, title="Bakery test", root_path=""):
 	if(bakery.headerText is None):
 		input_file = codecs.open(bakery.source + "/header.template", mode="r", encoding="utf-8")
 		bakery.headerText = input_file.read()
@@ -151,7 +153,7 @@ def generate_page_html(inTuple):
 		if(element != bakery.source):
 			return_path = return_path + '../'
 
-	full_page = get_header(bakery, title, None, return_path) + html + get_footer(bakery, return_path)
+	full_page = get_header(bakery, title, return_path) + html + get_footer(bakery, return_path)
 	# Remove old file extension
 	file = file.replace('.txt', '').replace('.mdown','').replace('.md','').replace('.markdown','')
 	file = file.replace(bakery.source + '/','')+'.html'
@@ -179,6 +181,13 @@ class Bakery:
 		self.footerText = None
 		self.config = {
 			'base_url': 'http://www.bjoreman.com/',
+			'rss_filename': 'rss.rss',
+			'rss_description': 'Latest updates on bjoreman.com',
+			'locale': 'en_US',
+			'rss_language': 'en',
+			'date_format': '%B %d, %Y',
+			'rss_editor': 'editor@bjoreman.com (Fredrik Bj&#246;reman)',
+			'rss_webmaster': 'webmaster@bjoreman.com (Fredrik Bj&#246;reman)',
 			'index_title': 'bjoreman.com',
 			'archive_all_posts': 'All posts',
 			'archive_filter_by_tag': 'Filter by tag:',
@@ -189,6 +198,7 @@ class Bakery:
 			strings = json.load(open('bakery_config.json'))
 			for key in strings:
 				self.config[key] = strings[key]
+		locale.setlocale(locale.LC_ALL, self.config['locale'])
 		json.dump(self.config, open('bakery_config.json', 'w'), sort_keys=True, indent=4)
 
 	def get_string(self, key):
@@ -225,14 +235,22 @@ class Bakery:
 					self.all_links.append(result)
 
 	def format_datetime_for_rss(self, datetime):
-		return datetime.strftime('%a, %d %b %Y %H:%M:%S') + ' EST'
+		return formatdate(float(datetime.strftime('%s')), True)
+		#return datetime.strftime('%a, %d %b %Y %H:%M:%S') + ' EST'
 
 	def format_datetime_for_page(self, datetime):
-		return datetime.strftime('%B %d, %Y')
+		return datetime.strftime(self.get_string('date_format'))
 
 	def create_news_and_feeds(self):
 		input_file = codecs.open(self.source + "/rss.template", mode="r", encoding="utf-8")
 		text = input_file.read()
+		text = text.replace("##TITLE##", self.get_string('index_title'))
+		text = text.replace("##BASE_URL##", self.get_string('base_url'))
+		text = text.replace("##RSS_FILENAME##", self.get_string('rss_filename'))
+		text = text.replace("##DESCRIPTION##", self.get_string('rss_description'))
+		text = text.replace("##LANGUAGE##", self.get_string('rss_language'))
+		text = text.replace("##EDITOR##", self.get_string('rss_editor'))
+		text = text.replace("##WEBMASTER##", self.get_string('rss_webmaster'))
 		count = 1;
 		content = ''
 		for link in self.all_links:
@@ -259,7 +277,7 @@ class Bakery:
 			content += '</item>\n'
 			count = count + 1
 		text = text.replace("##CONTENT##", content)
-		with codecs.open(os.path.join(self.destination, 'rss.rss'), mode="w", encoding="utf-8") as dest_file:
+		with codecs.open(os.path.join(self.destination, self.get_string('rss_filename')), mode="w", encoding="utf-8") as dest_file:
 			dest_file.write(text)
 
 	def modified(self, item):
@@ -283,7 +301,7 @@ class Bakery:
 			result += link['intro'].replace('../', '')
 			result += '</div>'
 		return_path = ''
-		result = get_header(self, self.get_string('index_title'), None, return_path) + result + get_footer(self, return_path)
+		result = get_header(self, self.get_string('index_title'), return_path) + result + get_footer(self, return_path)
 		with codecs.open(os.path.join(self.destination, 'index.html'), mode="w", encoding="utf-8") as dest_file:
 			dest_file.write(result)
 
@@ -300,7 +318,7 @@ class Bakery:
 			result += ('</li>')
 		result += '</ul>'
 		return_path = ''
-		result = get_header(self, headline, None, return_path) + result + get_footer(self, return_path)
+		result = get_header(self, headline, return_path) + result + get_footer(self, return_path)
 		with codecs.open(os.path.join(self.destination, filename), mode="w", encoding="utf-8") as dest_file:
 			dest_file.write(result)
 

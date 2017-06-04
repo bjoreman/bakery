@@ -5,7 +5,7 @@
 # Also create archive page(s) for all older entries.
 # Doing it like Marco makes sense - one start page and archive pages sorted per month.
 # When generating each page, I could also generate an introduction for use on these pages.
-# Generate intro either treated as Markdown, or make sure it does not contain anything which needs formatting.
+# Support slug-metadata or something?
 
 import sys
 import markdown
@@ -17,6 +17,7 @@ import time
 import re
 import multiprocessing
 import traceback
+import json
 
 # TODO Remove the need for this
 reload(sys)
@@ -118,7 +119,6 @@ def generate_page_html(inTuple):
 		if ('title' in metadata):
 			title = metadata['title']
 		else:
-			print name + ' has no title?'
 			title = 'Nameless'
 	if ('categories' in metadata):
 		if (metadata['categories']):
@@ -173,12 +173,28 @@ class Bakery:
 		if destination is None:
 			destination = 'oven'
 		self.destination = destination
-		self.lastRun = self.getLastRun(destination)
+		self.lastRun = self.get_last_run(destination)
 		self.all_links = []
 		self.headerText = None
 		self.footerText = None
+		self.config = {
+			'base_url': 'http://www.bjoreman.com/',
+			'index_title': 'bjoreman.com',
+			'archive_all_posts': 'All posts',
+			'archive_filter_by_tag': 'Filter by tag:',
+			'archive_all_posts': 'Archive - all posts',
+			'archive_posts_tagged': 'Archive - posts tagged'
+		}
+		if os.path.isfile('bakery_config.json'):
+			strings = json.load(open('bakery_config.json'))
+			for key in strings:
+				self.config[key] = strings[key]
+		json.dump(self.config, open('bakery_config.json', 'w'), sort_keys=True, indent=4)
 
-	def getLastRun(self, destination):
+	def get_string(self, key):
+		return self.config[key]
+
+	def get_last_run(self, destination):
 		path = os.path.join(self.destination, '.bakeryData')
 		if os.path.isfile(path):
 			input_file = codecs.open(path, mode="r", encoding="utf-8")
@@ -222,8 +238,8 @@ class Bakery:
 		for link in self.all_links:
 			description = link['intro'];
 			description = description.replace('../', '')
-			description = description.replace('href="', 'href="http://www.bjoreman.com/')
-			description = description.replace('src="', 'src="http://www.bjoreman.com/')
+			description = description.replace('href="', 'href="' + self.get_string('base_url'))
+			description = description.replace('src="', 'src="' + self.get_string('base_url'))
 			pattern = re.compile(r'(<img class="retinaImage")(.*?)(">)')
 			description = re.sub(pattern, '', description)
 			pattern2 = re.compile(r'(<!DOCTYPE)(.*?)(</div></a>)', re.DOTALL)
@@ -235,10 +251,10 @@ class Bakery:
 			# Replace all groups of ../  before /images with nothing
 			# and preferably remove retina images too
 			content += '<item>\n'
-			content += '\t<guid>http://www.bjoreman.com/'+link['path']+'</guid>\n'
+			content += '\t<guid>' + self.get_string('base_url')+link['path']+'</guid>\n'
 			content += '\t<title>'+link['title']+'</title>\n'
 			content += '\t<description><![CDATA['+description+']]></description>\n'
-			content += '\t<link>http://www.bjoreman.com/'+link['path']+'</link>\n'
+			content += '\t<link>' + self.get_string('base_url')+link['path']+'</link>\n'
 			content += '\t<pubDate>'+self.format_datetime_for_rss(datetime.datetime.fromtimestamp(link['modified']))+'</pubDate>\n'
 			content += '</item>\n'
 			count = count + 1
@@ -267,15 +283,15 @@ class Bakery:
 			result += link['intro'].replace('../', '')
 			result += '</div>'
 		return_path = ''
-		result = get_header(self, 'bjoreman.com', None, return_path) + result + get_footer(self, return_path)
+		result = get_header(self, self.get_string('index_title'), None, return_path) + result + get_footer(self, return_path)
 		with codecs.open(os.path.join(self.destination, 'index.html'), mode="w", encoding="utf-8") as dest_file:
 			dest_file.write(result)
 
 	def generate_archive_page(self, links, filename, headline, all_tags):
-		result = '<p> Filter by tag: '
+		result = '<p> ' + self.get_string('archive_filter_by_tag')
 		for tag in all_tags:
 			result += '<a href="' + archive_for_tag(tag) + '">' + tag + '</a> | '
-		result += '<a href="archive.html">All posts</a>'
+		result += '<a href="archive.html">' + self.get_string('archive_all_posts') + '</a>'
 		result += '</p>'
 		result += '<ul class="mainList">'
 		for link in links:
@@ -295,14 +311,14 @@ class Bakery:
 		all_tags = list(set(all_tags))
 		all_tags.sort()
 
-		self.generate_archive_page(self.all_links, 'archive.html', 'Archive - all posts', all_tags)
+		self.generate_archive_page(self.all_links, 'archive.html', self.get_string('archive_all_posts'), all_tags)
 
 		for tag in all_tags:
 			tagged_links = []
 			for link in self.all_links:
 				if tag in link['tags']:
 					tagged_links.append(link)
-			self.generate_archive_page(tagged_links, archive_for_tag(tag), 'Archive - posts tagged "' + tag + '"', all_tags)
+			self.generate_archive_page(tagged_links, archive_for_tag(tag), self.get_string('archive_posts_tagged') + ' "' + tag + '"', all_tags)
 
 	def bake(self):
 		print 'Baking ' + self.source + ' to ' + self.destination

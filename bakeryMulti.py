@@ -83,7 +83,6 @@ def modification_time_from_filename(name, original_time):
 		return time.mktime(datetime.datetime.strptime(name[0:10], '%Y-%m-%d').timetuple())
 	except Exception:
 		traceback.print_exc()
-		# Intentional ignore
 	return original_time
 
 def generate_page_html(inTuple):
@@ -168,13 +167,14 @@ def generate_page_html(inTuple):
 		return create_link_object(result_path,title, html, modification_time, tags, bakery.destination)
 
 class Bakery:
-	def __init__(self, source=None, destination=None):
+	def __init__(self, source=None, destination=None, clean=False):
 		if source is None:
 			source = 'sources'
 		self.source = source
 		if destination is None:
 			destination = 'oven'
 		self.destination = destination
+		self.clean = clean
 		self.lastRun = self.get_last_run(destination)
 		self.all_links = []
 		self.headerText = None
@@ -205,6 +205,8 @@ class Bakery:
 		return self.config[key]
 
 	def get_last_run(self, destination):
+		if (self.clean):
+			return None
 		path = os.path.join(self.destination, '.bakeryData')
 		if os.path.isfile(path):
 			input_file = codecs.open(path, mode="r", encoding="utf-8")
@@ -236,7 +238,6 @@ class Bakery:
 
 	def format_datetime_for_rss(self, datetime):
 		return formatdate(float(datetime.strftime('%s')), True)
-		#return datetime.strftime('%a, %d %b %Y %H:%M:%S') + ' EST'
 
 	def format_datetime_for_page(self, datetime):
 		return datetime.strftime(self.get_string('date_format'))
@@ -289,17 +290,18 @@ class Bakery:
 	def generate_index(self):
 		result = ''
 		for index in range(5):
-			link = self.all_links[index]
-			result += '<div class="post">'
-			if link['tags']:
-				result += '<div class="tagWrapper">'
-				for tag in link['tags']:
-					result += '<div class="tags '+ tag +'"><a href="'+ archive_for_tag(tag) +'">' + tag + '</a></div>'
+			if (len(self.all_links) >index):
+				link = self.all_links[index]
+				result += '<div class="post">'
+				if link['tags']:
+					result += '<div class="tagWrapper">'
+					for tag in link['tags']:
+						result += '<div class="tags '+ tag +'"><a href="'+ archive_for_tag(tag) +'">' + tag + '</a></div>'
+					result += '</div>'
+				result += ('<div class="datestamp">'+self.format_datetime_for_page(datetime.datetime.fromtimestamp(link['modified']))+'</div>')
+				result += '<a href="'+link['path']+'"><h1>' + link['title'] + '</h1></a>'
+				result += link['intro'].replace('../', '')
 				result += '</div>'
-			result += ('<div class="datestamp">'+self.format_datetime_for_page(datetime.datetime.fromtimestamp(link['modified']))+'</div>')
-			result += '<a href="'+link['path']+'"><h1>' + link['title'] + '</h1></a>'
-			result += link['intro'].replace('../', '')
-			result += '</div>'
 		return_path = ''
 		result = get_header(self, self.get_string('index_title'), return_path) + result + get_footer(self, return_path)
 		with codecs.open(os.path.join(self.destination, 'index.html'), mode="w", encoding="utf-8") as dest_file:
@@ -358,19 +360,26 @@ class Bakery:
 
 def main(argv):
 	print 'Welcome to the bakery!'
-	# Should not require destination, if none exists put it in a folder inside oven named the same as the source
-	if 3 > len(argv) < 1:
+	if 4 > len(argv) < 1:
 		print 'Invalid number of arguments.'
-		print 'Usage: bakery.py [source_folder=sources] [destination_folder=oven]'
+		print 'Usage: bakery.py [source_folder=sources] [destination_folder=oven] [clean]'
 		sys.exit(1)
 	if ((len(argv) == 2) and (argv[1] == "help")):
-		print 'Usage: bakery.py [source_folder=sources] [destination_folder=oven]'
+		print 'Usage: bakery.py [source_folder=sources] [destination_folder=oven] [clean]'
 		sys.exit(1)
-	if len(argv) is 1:
-		argv.append(None)
-	if len(argv) is 2:
-		argv.append(None)
-	bakery = Bakery(argv[1], argv[2])
+	source = None
+	destination = None
+	clean = False
+	for x in range(len(argv)):
+		if (argv[x]) == 'clean':
+			clean = True
+			break
+		else:
+			if (x == 1):
+				source = argv[x]
+			elif (x == 2):
+				destination = argv[x]
+	bakery = Bakery(source, destination, clean)
 	start = time.time()
 	bakery.bake()
 	print 'Baked for ', time.time()-start, ' seconds.'

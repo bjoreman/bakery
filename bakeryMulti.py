@@ -161,7 +161,7 @@ def generate_page_html(inTuple):
 		with codecs.open(result_path, mode="w", encoding="utf-8") as dest_file:
 			dest_file.write(full_page)
 	if 'hidden' in tags:
-		print '*** Hidden page, not adding to links'
+		print "*** Hidden page, not adding to links"
 		return None
 	else:
 		return create_link_object(result_path,title, html, modification_time, tags, bakery.destination)
@@ -308,16 +308,18 @@ class Bakery:
 			dest_file.write(result)
 
 	def generate_archive_page(self, links, filename, headline, all_tags):
-		result = '<p> ' + self.get_string('archive_filter_by_tag')
+		result = '<p class="tagSelection">' + self.get_string('archive_filter_by_tag') + ' '
 		for tag in all_tags:
 			result += '<a href="' + archive_for_tag(tag) + '">' + tag + '</a> | '
 		result += '<a href="archive.html">' + self.get_string('archive_all_posts') + '</a>'
 		result += '</p>'
 		result += '<ul class="mainList">'
+		count = 1;
 		for link in links:
-			result +=  ('<li><a href="'+link['path']+'">'+link['title']+'</a>')
+			result +=  ('<li id="'+str(count)+'"><a href="'+link['path']+'">'+link['title']+'</a>')
 			result += ('<p class="datestamp">'+self.format_datetime_for_page(datetime.datetime.fromtimestamp(link['modified']))+'</p>')
 			result += ('</li>')
+			count = count + 1
 		result += '</ul>'
 		return_path = ''
 		result = get_header(self, headline, return_path) + result + get_footer(self, return_path)

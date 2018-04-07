@@ -1,0 +1,14 @@
+{
+    "archive_all_posts": "Archive - all posts", 
+    "archive_filter_by_tag": "Filter by tag:", 
+    "archive_posts_tagged": "Archive - posts tagged", 
+    "base_url": "http://www.bjoreman.com/", 
+    "date_format": "%B %d, %Y", 
+    "index_title": "bjoreman.com", 
+    "locale": "en_US", 
+    "rss_description": "Latest updates on bjoreman.com", 
+    "rss_editor": "editor@bjoreman.com (Fredrik Bj&#246;reman)", 
+    "rss_filename": "rss.rss", 
+    "rss_language": "en", 
+    "rss_webmaster": "webmaster@bjoreman.com (Fredrik Bj&#246;reman)"
+}

@@ -1,8 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Just putting all the introductions on one page is a fine start.
-# Also create archive page(s) for all older entries.
 # Doing it like Marco makes sense - one start page and archive pages sorted per month.
 # When generating each page, I could also generate an introduction for use on these pages.
 # Support slug-metadata or something?
@@ -38,6 +36,11 @@ def should_skip(name):
 	if name.endswith(".markdown"):
 		return False
 	return True
+
+def is_selected(option, value):
+	if option == value:
+		return "selected"
+	return ""
 
 # Should pass in creation timestamp here I think.
 def create_link_object(path, title, intro, modification_time, tags, destination):
@@ -257,7 +260,9 @@ class Bakery:
 		for link in self.all_links:
 			description = link['intro'];
 			description = description.replace('../', '')
+			# This needs to be only for internal links, not external ones
 			description = description.replace('href="', 'href="' + self.get_string('base_url'))
+			description = description.replace('href="' + self.get_string('base_url') + 'http', 'href="http')
 			description = description.replace('src="', 'src="' + self.get_string('base_url'))
 			pattern = re.compile(r'(<img class="retinaImage")(.*?)(">)')
 			description = re.sub(pattern, '', description)
@@ -267,8 +272,6 @@ class Bakery:
 			description = re.sub(pattern3, '', description)
 			if count > 10:
 				break
-			# Replace all groups of ../  before /images with nothing
-			# and preferably remove retina images too
 			content += '<item>\n'
 			content += '\t<guid>' + self.get_string('base_url')+link['path']+'</guid>\n'
 			content += '\t<title>'+link['title']+'</title>\n'
@@ -308,11 +311,11 @@ class Bakery:
 			dest_file.write(result)
 
 	def generate_archive_page(self, links, filename, headline, all_tags):
-		result = '<p class="tagSelection">' + self.get_string('archive_filter_by_tag') + ' '
+		result = '<p class="tagSelection">' + self.get_string('archive_filter_by_tag') + ' <select onChange="window.location=event.target.value;">'
+		result += '<option '+ is_selected(filename, 'archive.html') +' value="archive.html">' + self.get_string('archive_all_posts') + '</option>'
 		for tag in all_tags:
-			result += '<a href="' + archive_for_tag(tag) + '">' + tag + '</a> | '
-		result += '<a href="archive.html">' + self.get_string('archive_all_posts') + '</a>'
-		result += '</p>'
+			result += '<option ' + is_selected(filename, archive_for_tag(tag)) + ' value="' + archive_for_tag(tag) + '">' + tag + '</option>'
+		result += '</select></p>'
 		result += '<ul class="mainList">'
 		count = 1;
 		for link in links:

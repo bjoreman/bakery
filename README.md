@@ -1,6 +1,8 @@
 # bakery
 The Python script I use to generate bjoreman.com from Markdown files and some minimal templates.
 
+Requires the Python Markdown package to be installed.
+
 Bakery started as the simplest possible script which could possibly do the job. Starting off, it did no caching between runs, no smart tracking, no splitting into pages or anything else smart, really. It has since picked up some capabilities and now uses multiple processes for quicker generation, only writes changed files to disk, and creation of archive pages based on tags. Other than that though, still pretty un-smart.
 
 In fact, just reading the code might be quicker and more illuminating than reading this.

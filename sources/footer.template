@@ -1,6 +1,6 @@
 		</div>
 		<p class="footer">
-			<a href="##ROOT_PATH##index.html">Home</a> | <a href="##ROOT_PATH##archive.html">Archive</a> | <a href="##ROOT_PATH##about.html">About</a> | <a href="mailto:contact@bjoreman.com">Mail me</a> | <a href="http://www.twitter.com/bjoreman">@bjoreman</a>
+			<a href="##ROOT_PATH##index.html">Home</a> | <a href="##ROOT_PATH##archive.html">Archive</a> | <a href="##ROOT_PATH##about.html">About</a> | <a href="mailto:contact@bjoreman.com">Mail me</a> | <a rel="me" href="https://toot.cafe/@bjoreman">Mastodon</a>
 		</p>
 	</body>
 </html>

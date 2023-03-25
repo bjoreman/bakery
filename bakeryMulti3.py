@@ -44,13 +44,16 @@ def create_link_object(path, title, intro, modification_time, tags, destination)
 	path = path.replace(destination + '/','')
 	return {'path' : path, 'title': title, 'intro' : intro, 'modified': modification_time, 'tags': tags}
 
-def get_header(bakery, title="Bakery test", root_path=""):
+def get_header(bakery, title="Bakery test", root_path="", modification_time = 0):
 	if(bakery.headerText is None):
 		input_file = codecs.open(bakery.source + "/header.template", mode="r", encoding="utf-8")
 		bakery.headerText = input_file.read()
 	result = bakery.headerText.replace("##TITLE##", title)
 	result = result.replace("##ROOT_PATH##", root_path)
-	return result
+	if (modification_time > 0):
+		return result + '<div class="datestamp">'+bakery.format_datetime_for_page(datetime.datetime.fromtimestamp(modification_time))+'</div>'
+	else:
+		return result
 
 def get_footer(bakery, root_path=""):
 	if(bakery.footerText is None):
@@ -152,12 +155,12 @@ def generate_page_html(inTuple):
 		if(element != bakery.source):
 			return_path = return_path + '../'
 
-	full_page = get_header(bakery, title, return_path) + html + get_footer(bakery, return_path)
+	full_page = get_header(bakery, title, return_path, modification_time) + html + get_footer(bakery, return_path)
 	# Remove old file extension
 	file = file.replace('.txt', '').replace('.mdown','').replace('.md','').replace('.markdown','')
 	file = file.replace(bakery.source + '/','')+'.html'
 	result_path = os.path.join(bakery.destination, file)
-	if m_time > bakery.lastRun:
+	if bakery.lastRun is None or m_time > bakery.lastRun:
 		with codecs.open(result_path, mode="w", encoding="utf-8") as dest_file:
 			dest_file.write(full_page)
 	if 'hidden' in tags:
